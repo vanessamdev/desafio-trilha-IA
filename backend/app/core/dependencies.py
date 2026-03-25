@@ -56,4 +56,12 @@ def get_text_generation_use_case() -> TextGenerationUseCase:
 def get_contract_analysis_use_case():
     """Provide contract analysis use case dependency"""
     from backend.app.application.use_cases.contract_analysis_use_case import ContractAnalysisUseCase
-    return ContractAnalysisUseCase()
+    from backend.app.infrastructure.services.mock_document_extractor import MockDocumentExtractor
+    from backend.app.infrastructure.services.mock_face_validator import MockFaceValidator
+    from backend.app.infrastructure.services.mock_ai_interpreter import MockAIInterpreter
+    
+    return ContractAnalysisUseCase(
+        document_extractor=MockDocumentExtractor(),
+        face_validator=MockFaceValidator(),
+        ai_interpreter=MockAIInterpreter()
+    )
