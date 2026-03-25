@@ -51,3 +51,9 @@ def get_image_recognition_use_case() -> ImageRecognitionUseCase:
 def get_text_generation_use_case() -> TextGenerationUseCase:
     """Provide text generation use case dependency"""
     return TextGenerationUseCase(bedrock_client=get_bedrock_client())
+
+
+def get_contract_analysis_use_case():
+    """Provide contract analysis use case dependency"""
+    from backend.app.application.use_cases.contract_analysis_use_case import ContractAnalysisUseCase
+    return ContractAnalysisUseCase()
