@@ -3,9 +3,11 @@ Application Configuration
 """
 from pydantic_settings import BaseSettings
 from typing import List
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    # Application
     APP_NAME: str = "Clean Architecture API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
@@ -25,6 +27,10 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
-settings = Settings()
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached settings instance"""
+    return Settings()
