@@ -6,16 +6,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import get_settings
+from backend.app.core.logging import setup_logging
 from backend.app.presentation.routes import health_router, document_router, image_router
 from backend.app.presentation.routes.contract_routes import router as contract_router
+from backend.app.presentation.middleware import ErrorHandlerMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler"""
-    # Startup
+    settings = get_settings()
+    logger = setup_logging(debug=settings.DEBUG)
+    logger.info("Application started")
     yield
-    # Shutdown
+    logger.info("Application shutdown")
 
 
 def create_app() -> FastAPI:
@@ -38,6 +42,7 @@ def create_app() -> FastAPI:
 
 def configure_middleware(app: FastAPI, settings) -> None:
     """Configure application middleware"""
+    app.add_middleware(ErrorHandlerMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.ALLOWED_ORIGINS,
