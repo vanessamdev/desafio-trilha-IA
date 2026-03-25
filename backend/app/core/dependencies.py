@@ -1,15 +1,30 @@
 """
 Dependency Injection Container
+
+Maps domain interfaces to concrete implementations.
+Change USE_MOCK_SERVICES to switch between mock and AWS implementations.
 """
 from functools import lru_cache
 
 from backend.app.core.config import get_settings, Settings
-from backend.app.infrastructure.aws.textract_client import TextractClient
-from backend.app.infrastructure.aws.rekognition_client import RekognitionClient
-from backend.app.infrastructure.aws.bedrock_client import BedrockClient
-from backend.app.application.use_cases.document_analysis_use_case import DocumentAnalysisUseCase
-from backend.app.application.use_cases.image_recognition_use_case import ImageRecognitionUseCase
-from backend.app.application.use_cases.text_generation_use_case import TextGenerationUseCase
+
+# Domain Interfaces
+from backend.app.domain.interfaces.document_extractor_interface import DocumentExtractorInterface
+from backend.app.domain.interfaces.face_validator_interface import FaceValidatorInterface
+from backend.app.domain.interfaces.ai_interpreter_interface import AIInterpreterInterface
+
+# AWS Implementations
+from backend.app.infrastructure.aws.textract_service import TextractService
+from backend.app.infrastructure.aws.rekognition_service import RekognitionService
+from backend.app.infrastructure.aws.bedrock_service import BedrockService
+
+# Mock Implementations
+from backend.app.infrastructure.services.mock_document_extractor import MockDocumentExtractor
+from backend.app.infrastructure.services.mock_face_validator import MockFaceValidator
+from backend.app.infrastructure.services.mock_ai_interpreter import MockAIInterpreter
+
+# Use Cases
+from backend.app.application.use_cases.contract_analysis_use_case import ContractAnalysisUseCase
 
 
 def get_config() -> Settings:
@@ -17,51 +32,64 @@ def get_config() -> Settings:
     return get_settings()
 
 
-@lru_cache()
-def get_textract_client() -> TextractClient:
-    """Provide Textract client dependency"""
-    settings = get_settings()
-    return TextractClient(region=settings.AWS_REGION)
-
+# =============================================================================
+# Interface → Implementation Bindings
+# =============================================================================
 
 @lru_cache()
-def get_rekognition_client() -> RekognitionClient:
-    """Provide Rekognition client dependency"""
+def get_document_extractor() -> DocumentExtractorInterface:
+    """
+    Bind: DocumentExtractorInterface → TextractService | MockDocumentExtractor
+    """
     settings = get_settings()
-    return RekognitionClient(region=settings.AWS_REGION)
-
-
-@lru_cache()
-def get_bedrock_client() -> BedrockClient:
-    """Provide Bedrock client dependency"""
-    settings = get_settings()
-    return BedrockClient(region=settings.AWS_REGION)
-
-
-def get_document_analysis_use_case() -> DocumentAnalysisUseCase:
-    """Provide document analysis use case dependency"""
-    return DocumentAnalysisUseCase(textract_client=get_textract_client())
-
-
-def get_image_recognition_use_case() -> ImageRecognitionUseCase:
-    """Provide image recognition use case dependency"""
-    return ImageRecognitionUseCase(rekognition_client=get_rekognition_client())
-
-
-def get_text_generation_use_case() -> TextGenerationUseCase:
-    """Provide text generation use case dependency"""
-    return TextGenerationUseCase(bedrock_client=get_bedrock_client())
-
-
-def get_contract_analysis_use_case():
-    """Provide contract analysis use case dependency"""
-    from backend.app.application.use_cases.contract_analysis_use_case import ContractAnalysisUseCase
-    from backend.app.infrastructure.services.mock_document_extractor import MockDocumentExtractor
-    from backend.app.infrastructure.services.mock_face_validator import MockFaceValidator
-    from backend.app.infrastructure.services.mock_ai_interpreter import MockAIInterpreter
     
+    if settings.DEBUG:
+        return MockDocumentExtractor()
+    
+    return TextractService(region=settings.AWS_REGION)
+
+
+@lru_cache()
+def get_face_validator() -> FaceValidatorInterface:
+    """
+    Bind: FaceValidatorInterface → RekognitionService | MockFaceValidator
+    """
+    settings = get_settings()
+    
+    if settings.DEBUG:
+        return MockFaceValidator()
+    
+    return RekognitionService(region=settings.AWS_REGION)
+
+
+@lru_cache()
+def get_ai_interpreter() -> AIInterpreterInterface:
+    """
+    Bind: AIInterpreterInterface → BedrockService | MockAIInterpreter
+    """
+    settings = get_settings()
+    
+    if settings.DEBUG:
+        return MockAIInterpreter()
+    
+    return BedrockService(region=settings.AWS_REGION)
+
+
+# =============================================================================
+# Use Case Providers
+# =============================================================================
+
+def get_contract_analysis_use_case() -> ContractAnalysisUseCase:
+    """
+    Provide ContractAnalysisUseCase with injected dependencies.
+    
+    Dependencies:
+        - DocumentExtractorInterface → TextractService
+        - FaceValidatorInterface → RekognitionService  
+        - AIInterpreterInterface → BedrockService
+    """
     return ContractAnalysisUseCase(
-        document_extractor=MockDocumentExtractor(),
-        face_validator=MockFaceValidator(),
-        ai_interpreter=MockAIInterpreter()
+        document_extractor=get_document_extractor(),
+        face_validator=get_face_validator(),
+        ai_interpreter=get_ai_interpreter()
     )
