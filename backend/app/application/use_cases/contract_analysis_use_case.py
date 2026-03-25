@@ -9,9 +9,9 @@ from backend.app.domain.interfaces.face_validator_interface import FaceValidator
 from backend.app.domain.interfaces.ai_interpreter_interface import AIInterpreterInterface
 from backend.app.presentation.schemas.contract_schemas import (
     ContractAnalysisResponse,
-    ExtractedDataResponse,
+    DocumentDataResponse,
     FaceValidationResponse,
-    AIInterpretationResponse
+    AnalysisResponse
 )
 
 
@@ -36,28 +36,26 @@ class ContractAnalysisUseCase:
         """Orchestrate contract analysis workflow"""
         request_id = str(uuid.uuid4())
         
-        # Step 1: Extract document data
-        extracted_data = await self._extract_document(document_content, document_filename)
-        
-        # Step 2: Validate face image
+        document_data = await self._extract_document(document_content, document_filename)
         face_validation = await self._validate_face(face_image_content)
+        analysis = await self._interpret_contract(document_data.raw_text)
         
-        # Step 3: Interpret with AI
-        ai_interpretation = await self._interpret_contract(extracted_data.raw_text)
-        
-        return self._build_response(
+        return ContractAnalysisResponse(
             request_id=request_id,
+            status="success",
             document_filename=document_filename,
             face_image_filename=face_image_filename,
-            extracted_data=extracted_data,
+            document_data=document_data,
             face_validation=face_validation,
-            ai_interpretation=ai_interpretation
+            analysis=analysis,
+            processed_at=datetime.utcnow(),
+            message="Contract analysis completed successfully"
         )
 
-    async def _extract_document(self, content: bytes, filename: str) -> ExtractedDataResponse:
+    async def _extract_document(self, content: bytes, filename: str) -> DocumentDataResponse:
         """Extract data from document"""
         result = await self._document_extractor.extract(content, filename)
-        return ExtractedDataResponse(
+        return DocumentDataResponse(
             raw_text=result.raw_text,
             fields=result.fields,
             confidence=result.confidence,
@@ -74,35 +72,13 @@ class ContractAnalysisUseCase:
             message=result.message
         )
 
-    async def _interpret_contract(self, extracted_text: str) -> AIInterpretationResponse:
+    async def _interpret_contract(self, extracted_text: str) -> AnalysisResponse:
         """Interpret contract using AI"""
         result = await self._ai_interpreter.interpret(extracted_text)
-        return AIInterpretationResponse(
+        return AnalysisResponse(
             summary=result.summary,
             risk_level=result.risk_level,
             recommendations=result.recommendations,
             is_valid_contract=result.is_valid_contract,
             confidence=result.confidence
-        )
-
-    def _build_response(
-        self,
-        request_id: str,
-        document_filename: str,
-        face_image_filename: str,
-        extracted_data: ExtractedDataResponse,
-        face_validation: FaceValidationResponse,
-        ai_interpretation: AIInterpretationResponse
-    ) -> ContractAnalysisResponse:
-        """Build final response"""
-        return ContractAnalysisResponse(
-            request_id=request_id,
-            status="completed",
-            document_filename=document_filename,
-            face_image_filename=face_image_filename,
-            extracted_data=extracted_data,
-            face_validation=face_validation,
-            ai_interpretation=ai_interpretation,
-            processed_at=datetime.utcnow(),
-            message="Contract analysis completed successfully"
         )

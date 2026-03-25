@@ -6,7 +6,7 @@ from typing import Optional, List
 from datetime import datetime
 
 
-class ExtractedDataResponse(BaseModel):
+class DocumentDataResponse(BaseModel):
     raw_text: str
     fields: dict
     confidence: float
@@ -20,7 +20,7 @@ class FaceValidationResponse(BaseModel):
     message: str
 
 
-class AIInterpretationResponse(BaseModel):
+class AnalysisResponse(BaseModel):
     summary: str
     risk_level: str
     recommendations: List[str]
@@ -33,8 +33,8 @@ class ContractAnalysisResponse(BaseModel):
     status: str
     document_filename: str
     face_image_filename: str
-    extracted_data: Optional[ExtractedDataResponse] = None
+    document_data: Optional[DocumentDataResponse] = None
     face_validation: Optional[FaceValidationResponse] = None
-    ai_interpretation: Optional[AIInterpretationResponse] = None
+    analysis: Optional[AnalysisResponse] = None
     processed_at: datetime
     message: str

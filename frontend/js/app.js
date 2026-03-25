@@ -89,7 +89,7 @@ function showResult(data) {
             </div>
             <div class="result-item">
                 <span class="result-label">Status</span>
-                <span class="result-value ${data.status === 'completed' ? 'status-valid' : 'status-invalid'}">${data.status}</span>
+                <span class="result-value ${data.status === 'success' ? 'status-valid' : 'status-invalid'}">${data.status}</span>
             </div>
             <div class="result-item">
                 <span class="result-label">Documento</span>
@@ -101,18 +101,18 @@ function showResult(data) {
             </div>
         </div>
         
-        ${renderExtractedData(data.extracted_data)}
+        ${renderDocumentData(data.document_data)}
         ${renderFaceValidation(data.face_validation)}
-        ${renderAIInterpretation(data.ai_interpretation)}
+        ${renderAnalysis(data.analysis)}
     `;
 }
 
-function renderExtractedData(data) {
+function renderDocumentData(data) {
     if (!data) return '';
     
     return `
         <div class="result-section">
-            <h3>Dados Extraídos</h3>
+            <h3>Dados do Documento</h3>
             <div class="result-item">
                 <span class="result-label">Confiança</span>
                 <span class="result-value">${data.confidence.toFixed(1)}%</span>
@@ -155,14 +155,14 @@ function renderFaceValidation(data) {
     `;
 }
 
-function renderAIInterpretation(data) {
+function renderAnalysis(data) {
     if (!data) return '';
     
     const riskClass = `risk-${data.risk_level}`;
     
     return `
         <div class="result-section">
-            <h3>Interpretação IA</h3>
+            <h3>Análise</h3>
             <div class="result-item">
                 <span class="result-label">Contrato Válido</span>
                 <span class="result-value ${data.is_valid_contract ? 'status-valid' : 'status-invalid'}">${data.is_valid_contract ? 'Sim' : 'Não'}</span>
