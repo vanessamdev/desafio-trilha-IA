@@ -14,8 +14,13 @@ from backend.app.infrastructure.aws.exceptions import AWSServiceError
 
 
 class BedrockService(AIInterpreterInterface):
-    def __init__(self, region: str, model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"):
-        self._client = boto3.client("bedrock-runtime", region_name=region)
+    def __init__(self, region: str, access_key: str = None, secret_key: str = None, model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"):
+        self._client = boto3.client(
+            "bedrock-runtime",
+            region_name=region,
+            aws_access_key_id=access_key if access_key else None,
+            aws_secret_access_key=secret_key if secret_key else None
+        )
         self._model_id = model_id
 
     async def interpret(

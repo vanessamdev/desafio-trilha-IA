@@ -2,6 +2,7 @@
 Contract Analysis Use Case
 """
 import uuid
+from typing import Optional
 from datetime import datetime
 
 from backend.app.domain.interfaces.document_extractor_interface import DocumentExtractorInterface
@@ -30,14 +31,18 @@ class ContractAnalysisUseCase:
         self,
         document_content: bytes,
         document_filename: str,
-        face_image_content: bytes,
-        face_image_filename: str
+        face_image_content: Optional[bytes] = None,
+        face_image_filename: Optional[str] = None
     ) -> ContractAnalysisResponse:
         """Orchestrate contract analysis workflow"""
         request_id = str(uuid.uuid4())
         
         document_data = await self._extract_document(document_content, document_filename)
-        face_validation = await self._validate_face(face_image_content)
+        
+        face_validation = None
+        if face_image_content:
+            face_validation = await self._validate_face(face_image_content)
+        
         analysis = await self._interpret_contract(document_data.raw_text)
         
         return ContractAnalysisResponse(

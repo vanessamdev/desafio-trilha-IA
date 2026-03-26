@@ -1,6 +1,7 @@
 """
 Contract Analysis Routes
 """
+from typing import Optional
 from fastapi import APIRouter, Depends, UploadFile, File
 
 from backend.app.presentation.schemas.contract_schemas import ContractAnalysisResponse
@@ -14,21 +15,26 @@ router = APIRouter()
 @router.post("/analyze-contract", response_model=ContractAnalysisResponse)
 async def analyze_contract(
     document: UploadFile = File(..., description="Contract document (PDF or image)"),
-    face_image: UploadFile = File(..., description="Face image for verification"),
+    face_image: Optional[UploadFile] = File(None, description="Face image for verification (optional)"),
     use_case: ContractAnalysisUseCase = Depends(get_contract_analysis_use_case)
 ) -> ContractAnalysisResponse:
     """
-    Analyze contract document and verify face image.
+    Analyze contract document and optionally verify face image.
     
     - Accepts PDF or image documents (max 10MB)
-    - Accepts face image PNG/JPEG (max 5MB)
+    - Optionally accepts face image PNG/JPEG (max 5MB)
     """
     document_content = await validate_document(document)
-    face_image_content = await validate_face_image(face_image)
+    
+    face_image_content = None
+    face_image_filename = None
+    if face_image:
+        face_image_content = await validate_face_image(face_image)
+        face_image_filename = face_image.filename
     
     return await use_case.analyze(
         document_content=document_content,
         document_filename=document.filename,
         face_image_content=face_image_content,
-        face_image_filename=face_image.filename
+        face_image_filename=face_image_filename
     )

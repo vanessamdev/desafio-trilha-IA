@@ -1,27 +1,18 @@
 """
 Document Processing Routes
 """
-from fastapi import APIRouter, Depends, UploadFile, File
-
-from backend.app.core.dependencies import get_document_analysis_use_case
-from backend.app.application.use_cases.document_analysis_use_case import DocumentAnalysisUseCase
+from fastapi import APIRouter
 
 router = APIRouter()
 
 
 @router.post("/analyze")
-async def analyze_document(
-    file: UploadFile = File(...),
-    use_case: DocumentAnalysisUseCase = Depends(get_document_analysis_use_case)
-):
+async def analyze_document():
     """Analyze document using AWS Textract"""
-    pass
+    return {"message": "Use /analyze-contract endpoint"}
 
 
 @router.post("/extract-text")
-async def extract_text(
-    file: UploadFile = File(...),
-    use_case: DocumentAnalysisUseCase = Depends(get_document_analysis_use_case)
-):
+async def extract_text():
     """Extract text from document"""
-    pass
+    return {"message": "Use /analyze-contract endpoint"}

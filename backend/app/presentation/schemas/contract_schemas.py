@@ -32,7 +32,7 @@ class ContractAnalysisResponse(BaseModel):
     request_id: str
     status: str
     document_filename: str
-    face_image_filename: str
+    face_image_filename: Optional[str] = None
     document_data: Optional[DocumentDataResponse] = None
     face_validation: Optional[FaceValidationResponse] = None
     analysis: Optional[AnalysisResponse] = None

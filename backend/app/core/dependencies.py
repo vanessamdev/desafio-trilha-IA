@@ -2,7 +2,7 @@
 Dependency Injection Container
 
 Maps domain interfaces to concrete implementations.
-Change USE_MOCK_SERVICES to switch between mock and AWS implementations.
+Change DEBUG to switch between mock and AWS implementations.
 """
 from functools import lru_cache
 
@@ -46,7 +46,11 @@ def get_document_extractor() -> DocumentExtractorInterface:
     if settings.DEBUG:
         return MockDocumentExtractor()
     
-    return TextractService(region=settings.AWS_REGION)
+    return TextractService(
+        region=settings.AWS_REGION,
+        access_key=settings.AWS_ACCESS_KEY_ID,
+        secret_key=settings.AWS_SECRET_ACCESS_KEY
+    )
 
 
 @lru_cache()
@@ -59,7 +63,11 @@ def get_face_validator() -> FaceValidatorInterface:
     if settings.DEBUG:
         return MockFaceValidator()
     
-    return RekognitionService(region=settings.AWS_REGION)
+    return RekognitionService(
+        region=settings.AWS_REGION,
+        access_key=settings.AWS_ACCESS_KEY_ID,
+        secret_key=settings.AWS_SECRET_ACCESS_KEY
+    )
 
 
 @lru_cache()
@@ -72,7 +80,11 @@ def get_ai_interpreter() -> AIInterpreterInterface:
     if settings.DEBUG:
         return MockAIInterpreter()
     
-    return BedrockService(region=settings.AWS_REGION)
+    return BedrockService(
+        region=settings.AWS_REGION,
+        access_key=settings.AWS_ACCESS_KEY_ID,
+        secret_key=settings.AWS_SECRET_ACCESS_KEY
+    )
 
 
 # =============================================================================
@@ -82,11 +94,6 @@ def get_ai_interpreter() -> AIInterpreterInterface:
 def get_contract_analysis_use_case() -> ContractAnalysisUseCase:
     """
     Provide ContractAnalysisUseCase with injected dependencies.
-    
-    Dependencies:
-        - DocumentExtractorInterface → TextractService
-        - FaceValidatorInterface → RekognitionService  
-        - AIInterpreterInterface → BedrockService
     """
     return ContractAnalysisUseCase(
         document_extractor=get_document_extractor(),

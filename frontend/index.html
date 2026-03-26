@@ -9,21 +9,21 @@
 <body>
     <header>
         <h1>Análise de Contratos com IA</h1>
-        <p>Upload de documento e verificação facial</p>
+        <p>Upload de documento e verificação facial (opcional)</p>
     </header>
     
     <main>
         <form id="analysis-form">
             <div class="upload-section">
                 <div class="upload-box">
-                    <label for="document">Documento (PDF ou Imagem)</label>
+                    <label for="document">Documento (PDF ou Imagem) *</label>
                     <input type="file" id="document" name="document" accept=".pdf,.png,.jpg,.jpeg" required>
                     <span class="file-info" id="document-info">Nenhum arquivo selecionado</span>
                 </div>
                 
                 <div class="upload-box">
-                    <label for="face-image">Imagem Facial</label>
-                    <input type="file" id="face-image" name="face_image" accept=".png,.jpg,.jpeg" required>
+                    <label for="face-image">Imagem Facial (opcional)</label>
+                    <input type="file" id="face-image" name="face_image" accept=".png,.jpg,.jpeg">
                     <span class="file-info" id="face-info">Nenhum arquivo selecionado</span>
                 </div>
             </div>

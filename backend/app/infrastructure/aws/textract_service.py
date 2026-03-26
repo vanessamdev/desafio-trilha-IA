@@ -12,16 +12,22 @@ from backend.app.infrastructure.aws.exceptions import AWSServiceError
 
 
 class TextractService(DocumentExtractorInterface):
-    def __init__(self, region: str):
-        self._client = boto3.client("textract", region_name=region)
+    def __init__(self, region: str, access_key: str = None, secret_key: str = None):
+        self._client = boto3.client(
+            "textract",
+            region_name=region,
+            aws_access_key_id=access_key if access_key else None,
+            aws_secret_access_key=secret_key if secret_key else None
+        )
 
     async def extract(self, content: bytes, filename: str) -> ExtractedData:
         """Extract text and data from document using AWS Textract"""
         try:
-            response = self._client.analyze_document(
-                Document={"Bytes": content},
-                FeatureTypes=["FORMS", "TABLES"]
-            )
+            # Try analyze_document first (supports forms/tables)
+            response = self._try_analyze_document(content)
+            if response is None:
+                # Fallback to detect_document_text (simpler, more formats)
+                response = self._detect_text(content)
             
             raw_text = self._extract_raw_text(response)
             fields = self._extract_fields(response)
@@ -36,6 +42,22 @@ class TextractService(DocumentExtractorInterface):
             )
         except ClientError as error:
             raise AWSServiceError(f"Textract error: {error.response['Error']['Message']}")
+
+    def _try_analyze_document(self, content: bytes) -> dict:
+        """Try to analyze document with forms/tables extraction"""
+        try:
+            return self._client.analyze_document(
+                Document={"Bytes": content},
+                FeatureTypes=["FORMS", "TABLES"]
+            )
+        except ClientError:
+            return None
+
+    def _detect_text(self, content: bytes) -> dict:
+        """Simple text detection fallback"""
+        return self._client.detect_document_text(
+            Document={"Bytes": content}
+        )
 
     def _extract_raw_text(self, response: dict) -> str:
         """Extract raw text from Textract response"""

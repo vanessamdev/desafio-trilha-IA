@@ -45,7 +45,7 @@ def configure_middleware(app: FastAPI, settings) -> None:
     app.add_middleware(ErrorHandlerMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

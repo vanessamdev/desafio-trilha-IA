@@ -25,16 +25,19 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const documentFile = documentInput.files[0];
-    const faceFile = faceInput.files[0];
     
-    if (!documentFile || !faceFile) {
-        showError('Selecione ambos os arquivos');
+    if (!documentFile) {
+        showError('Selecione o documento');
         return;
     }
     
     const formData = new FormData();
     formData.append('document', documentFile);
-    formData.append('face_image', faceFile);
+    
+    const faceFile = faceInput.files[0];
+    if (faceFile) {
+        formData.append('face_image', faceFile);
+    }
     
     showLoading();
     
@@ -46,7 +49,7 @@ form.addEventListener('submit', async (e) => {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'Erro ao processar análise');
+            throw new Error(errorData.detail || errorData.message || 'Erro ao processar análise');
         }
         
         const data = await response.json();
@@ -123,14 +126,14 @@ function renderDocumentData(data) {
             </div>
             <div class="result-item">
                 <span class="result-label">Texto Extraído</span>
-                <span class="result-value">${data.raw_text.substring(0, 100)}...</span>
+                <span class="result-value">${data.raw_text.substring(0, 200)}${data.raw_text.length > 200 ? '...' : ''}</span>
             </div>
         </div>
     `;
 }
 
 function renderFaceValidation(data) {
-    if (!data) return '';
+    if (!data) return '<div class="result-section"><h3>Validação Facial</h3><p>Não solicitada</p></div>';
     
     return `
         <div class="result-section">
